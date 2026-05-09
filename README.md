@@ -1,6 +1,6 @@
 # AU-Lottery
 
-A small two-tier app that generates Australian lottery numbers (OZ Lotto, Powerball, Lotto).
+A small two-tier app that generates Australian lottery numbers (OZ Lotto, Powerball, Lotto) for fun.
 
 - **`API/`** — Python (FastAPI + Uvicorn) backend that generates the numbers. Default port `9000`.
 - **`UI/`** — Node.js (Express + EJS) frontend that calls the API. Default port `8080` in containers / `3300` in local dev.
