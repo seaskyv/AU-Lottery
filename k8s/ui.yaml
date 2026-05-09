@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: au-lottery-ui
+  namespace: au-lottery
+  labels:
+    app: au-lottery-ui
+    component: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: au-lottery-ui
+  template:
+    metadata:
+      labels:
+        app: au-lottery-ui
+        component: ui
+    spec:
+      containers:
+        - name: ui
+          image: seaskyv/au-lottery-ui:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: node_port
+              value: "8080"
+            # Reach the API via the in-cluster service DNS
+            - name: backendhost
+              value: "au-lottery-api.au-lottery.svc.cluster.local"
+            - name: backendport
+              value: "9000"
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: au-lottery-ui
+  namespace: au-lottery
+  labels:
+    app: au-lottery-ui
+    component: ui
+spec:
+  # Switch to LoadBalancer or add an Ingress for external access.
+  type: ClusterIP
+  selector:
+    app: au-lottery-ui
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

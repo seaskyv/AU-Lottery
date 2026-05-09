@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: au-lottery-api
+  namespace: au-lottery
+  labels:
+    app: au-lottery-api
+    component: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: au-lottery-api
+  template:
+    metadata:
+      labels:
+        app: au-lottery-api
+        component: api
+    spec:
+      containers:
+        - name: api
+          # Tag is replaced at deploy time, e.g. via:
+          #   kubectl set image deploy/au-lottery-api api=seaskyv/au-lottery-api:<VERSION> -n au-lottery
+          image: seaskyv/au-lottery-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9000
+          env:
+            - name: PORT
+              value: "9000"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: au-lottery-api
+  namespace: au-lottery
+  labels:
+    app: au-lottery-api
+    component: api
+spec:
+  type: ClusterIP
+  selector:
+    app: au-lottery-api
+  ports:
+    - name: http
+      port: 9000
+      targetPort: http
+      protocol: TCP
